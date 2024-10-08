@@ -1,5 +1,6 @@
 ﻿namespace Domain
 {
+    //enum
     public class EmployeeRole
     {
         public int EmployeeRoleID { get; set; }
