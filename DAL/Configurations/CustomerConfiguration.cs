@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DAL.Configurations
 {
+    //note internal
     internal class CustomerConfiguration : IEntityTypeConfiguration<Customer>
     {
 
