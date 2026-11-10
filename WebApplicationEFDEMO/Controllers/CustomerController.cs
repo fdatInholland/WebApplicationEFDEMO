@@ -1,6 +1,5 @@
 ﻿using DAL;
 using Domain;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplicationEFDEMO.DTO;
@@ -19,123 +18,168 @@ namespace WebApplicationEFDEMO.Controllers
         }
 
         [HttpGet("GetAll")]
-        public IActionResult GetAllCustomers()
+        public async Task<IActionResult> GetAllCustomers()
         {
-            return Ok(_customersContext.Customer);
-        }
-
-        [HttpPost("DeleteCustomer")]
-        public IActionResult DeleteCustomer(int ID)
-        {
-            Customer foundCustomer = _customersContext.Customer.Find(ID);
-            _customersContext.Customer.Remove(foundCustomer);
-
-            _customersContext.SaveChanges();
-
-            return Ok(_customersContext.Customer);
-        }
-
-        [HttpPost("EditCustomer")]
-        public IActionResult EditCustomer(int ID, string FN)
-        {
-            Customer foundCustomer = _customersContext.Customer.Find(ID);
-            foundCustomer.FirstName = FN;
-
-            _customersContext.SaveChanges();
-
-            return Ok(_customersContext.Customer);
-        }
-
-
-        [HttpPost("ModifyCustomer")]
-        public IActionResult ModifyCustomer(Customer customer)
-        {
-            _customersContext.Entry(customer).State = EntityState.Modified;
-            _customersContext.SaveChanges();
-
-            return Ok(_customersContext.Customer);
-        }
-
-
-        [HttpGet("Include")]
-        public IActionResult Include(int ID)
-        {
-            var Customer = _customersContext.Customer
-                            .Include(c => c.Invoices)
-                            .Where(n => n.CustomerID == ID)
-                            .ToList();
-
-            return Ok(Customer);
-        }
-
-        [HttpGet("CustomerInvoices")]
-        public IActionResult CustomerInvoices()
-        {
-            var Customers = _customersContext.Customer
-                            .Include(c => c.Invoices)
-                            .ToList();
+            var Customers = await _customersContext.Customer.ToListAsync();
 
             return Ok(Customers);
         }
 
-        [HttpGet("EasyLinq")]
-        public IActionResult EasyLinq()
+        [HttpPost("{CustomerId}")]
+        public async Task<IActionResult> DeleteCustomer(int CustomerId)
         {
-            //method syntax
-            var Customer = _customersContext.Customer
-                            .Where(c => c.LastName == "Jacobs")
-                            .FirstOrDefault<Customer>();
+            Customer foundCustomer = await _customersContext.Customer.FindAsync(CustomerId);
 
-            //query syntax
-            var query = from st in _customersContext.Customer
-                        where st.LastName == "Billy"
-                        select st;
+            if (foundCustomer is null)
+            {
+                return NotFound("Customer not Found");
+            }
+            _customersContext.Customer.Remove(foundCustomer);
+
+            _customersContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPut("{CustomerId}")]
+        public async Task<IActionResult> EditCustomer(int CustomerId, [FromBody] string FN)
+        {
+            Customer foundCustomer = await _customersContext.Customer.FindAsync(CustomerId);
+            if (foundCustomer is null)
+            {
+                return NotFound("Customer not Found");
+            }
+
+            foundCustomer.FirstName = FN;
+
+            _customersContext.SaveChangesAsync();
+
+            return Ok(foundCustomer);
+        }
+
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ModifyCustomer(int id, [FromBody]Customer updatedCustomer)
+        {
+            if (id != updatedCustomer.CustomerID)
+            {
+                return BadRequest("Customer ID mismatch.");
+            }
+
+            var existingCustomer = await _customersContext.Customer.FindAsync(id);
+
+            if (existingCustomer is null)
+            {
+                return NotFound("Customer not found.");
+            }
+
+            existingCustomer.FirstName = updatedCustomer.FirstName;
+            existingCustomer.LastName = updatedCustomer.LastName;
+
+            _customersContext.Entry(existingCustomer).State = EntityState.Modified;
+            await _customersContext.SaveChangesAsync();
+
+            return Ok(existingCustomer);
+        }
+
+
+        [HttpGet("{customerId}")]
+        public async Task<IActionResult> GetCustomerWithInvoices(int CustomerId)
+        {
+            var customer = await _customersContext.Customer
+                            .Include(c => c.Invoices)
+                            .Where(n => n.CustomerID == CustomerId)
+                            .ToListAsync();
+
+            if (customer is null)
+            {
+                return NotFound("Customer not found.");
+            }
+
+            return Ok(customer);
+        }
+
+        [HttpGet("by-lastname")]
+        public async Task<IActionResult> FindCustomerByLN(string lastName)
+        {
+            Customer foundCustomer = null;
+
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                return BadRequest("The 'lastName' query parameter is required.");
+            }
+                lastName = lastName.Trim();
+
+                //method syntax
+                foundCustomer = _customersContext.Customer
+                                .Where(c => c.LastName == lastName)
+                                .FirstOrDefault<Customer>();
+
+            ////query syntax
+            //var query = from st in _customersContext.Customer
+            //            where st.LastName == LastName
+            //            select st;
+
+            if (foundCustomer == null)
+            {
+                return NotFound("Customer not found");
+            }
+
+            return Ok(foundCustomer);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCustomersOrderedByLastName()
+        {
+            var Customer = await _customersContext.Customer.OrderBy(c => c.LastName).ToListAsync();
 
             return Ok(Customer);
         }
 
-        [HttpGet("LN")]
-        public IActionResult LN()
+        [HttpGet("{customerId}")]
+        public async Task<IActionResult> GetCustomerDto(int customerID)
         {
-            var Customer = _customersContext.Customer.OrderBy(c => c.LastName).ToList();
+            CustomerDTO? customerDTO = await _customersContext.Customer.Where(c => c.CustomerID == customerID).
+                            Select(p => new CustomerDTO(p.LastName))
+                            .FirstOrDefaultAsync();
 
-            return Ok(Customer);
+            return Ok(customerDTO);
         }
 
-        [HttpGet("Projection")]
-        public IActionResult Projection()
+        [HttpGet("invoices/search")]
+        public async Task<IActionResult> GetCustomerInvoices(string firstName)
         {
-            var CustDTO = _customersContext.Customer.
-                            Select(p => new CustomerDTO { LastName = p.LastName })
-                            .ToList();
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                return BadRequest("The 'firstName' query parameter is required.");
+            }
 
-            return Ok(CustDTO);
-        }
-
-        [HttpGet("SelectNotEasy")]
-        public IActionResult SelectNotEasy()
-        {
-            var CustInvoice = _customersContext.Customer
-                            .Where(c => c.FirstName.StartsWith("G"))
+            var CustInvoice = await _customersContext.Customer
+                            .Where(c => c.FirstName.StartsWith(firstName))
                             .SelectMany(c => c.Invoices, (c, i) =>
                             new
                             {
                                 c.LastName,
                                 i.InvoiceDate
                             })
-                            .ToList();
+                            .ToListAsync();
 
             return Ok(CustInvoice);
         }
 
-        [HttpGet("ThenInclude")]
-        public IActionResult ThenInclude()
+        [HttpGet("Search")]
+        public async Task<IActionResult> GetCustomersWithInvoices([FromQuery] string firstName)
         {
-            var CustInvoice = _customersContext.Customer
-                            .Where(c => c.FirstName.StartsWith("S"))
-                            .Include(i => i.Invoices)
-                            .ThenInclude(j => j.InvoiceLines)
-                            .ToList();
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                return BadRequest("A search term for the first name is required.");
+            }
+            
+            var CustInvoice = await _customersContext.Customer
+                        .Where(c => c.FirstName.StartsWith(firstName))
+                        .Include(i => i.Invoices)
+                        .ThenInclude(j => j.InvoiceLines)
+                        .ToListAsync();
 
             return Ok(CustInvoice);
         }

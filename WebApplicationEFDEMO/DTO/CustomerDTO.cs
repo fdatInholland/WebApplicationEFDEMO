@@ -1,7 +1,4 @@
 ﻿namespace WebApplicationEFDEMO.DTO
 {
-    public class CustomerDTO
-    {
-        public string LastName { get; set; }
-    }
+    public record CustomerDTO(string LastName);
 }
