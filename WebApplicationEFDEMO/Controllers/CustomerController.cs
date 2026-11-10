@@ -43,46 +43,35 @@ namespace WebApplicationEFDEMO.Controllers
             return NoContent();
         }
 
-        //[HttpPut("{CustomerId}")]
-        //public async Task<IActionResult> EditCustomer(int CustomerId, [FromBody] string FN)
-        //{
-        //    Customer foundCustomer = await _customersContext.Customer.FindAsync(CustomerId);
-        //    if (foundCustomer is null)
-        //    {
-        //        return NotFound("Customer not Found");
-        //    }
-
-        //    foundCustomer.FirstName = FN;
-
-        //    _customersContext.SaveChangesAsync();
-
-        //    return Ok(foundCustomer);
+        //        {
+        //  "customerID": 5,
+        //  "firstName": "Jane",
+        //  "lastName": "Doe",
+        //  "age": 30
         //}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ModifyCustomer(int id, [FromBody] Customer updatedCustomer)
+        {
+            if (id != updatedCustomer.CustomerID)
+            {
+                return BadRequest("Customer ID mismatch.");
+            }
 
+            var existingCustomer = await _customersContext.Customer.FindAsync(id);
 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> ModifyCustomer(int id, [FromBody]Customer updatedCustomer)
-        //{
-        //    if (id != updatedCustomer.CustomerID)
-        //    {
-        //        return BadRequest("Customer ID mismatch.");
-        //    }
+            if (existingCustomer is null)
+            {
+                return NotFound("Customer not found.");
+            }
 
-        //    var existingCustomer = await _customersContext.Customer.FindAsync(id);
+            existingCustomer.FirstName = updatedCustomer.FirstName;
+            existingCustomer.LastName = updatedCustomer.LastName;
 
-        //    if (existingCustomer is null)
-        //    {
-        //        return NotFound("Customer not found.");
-        //    }
+            _customersContext.Entry(existingCustomer).State = EntityState.Modified;
+            await _customersContext.SaveChangesAsync();
 
-        //    existingCustomer.FirstName = updatedCustomer.FirstName;
-        //    existingCustomer.LastName = updatedCustomer.LastName;
-
-        //    _customersContext.Entry(existingCustomer).State = EntityState.Modified;
-        //    await _customersContext.SaveChangesAsync();
-
-        //    return Ok(existingCustomer);
-        //}
+            return Ok(existingCustomer);
+        }
 
         //Postman: http://localhost:5241/api/customer/GetCustomerWithInvoices/31
         [HttpPost("GetCustomerWithInvoices/{CustomerId}")]
@@ -101,89 +90,84 @@ namespace WebApplicationEFDEMO.Controllers
             return Ok(customer);
         }
 
-        //[HttpGet("bylastname")]
-        //public async Task<IActionResult> FindCustomerByLN(string lastName)
-        //{
-        //    Customer foundCustomer = null;
+        //Postman: http://localhost:5241/api/customer/FindCustomerByLN?lastName=Om
+        [HttpPost("FindCustomerByLN")]
+        public async Task<IActionResult> FindCustomerByLN(string lastName)
+        {
+            Customer foundCustomer = null;
 
-        //    if (string.IsNullOrWhiteSpace(lastName))
-        //    {
-        //        return BadRequest("The 'lastName' query parameter is required.");
-        //    }
-        //        lastName = lastName.Trim();
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                return BadRequest("The 'lastName' query parameter is required.");
+            }
+            lastName = lastName.Trim();
 
-        //        //method syntax
-        //        foundCustomer = _customersContext.Customer
-        //                        .Where(c => c.LastName == lastName)
-        //                        .FirstOrDefault<Customer>();
+            //method syntax
+            foundCustomer = _customersContext.Customer
+                            .Where(c => c.LastName == lastName)
+                            .FirstOrDefault<Customer>();
 
-        //    ////query syntax
-        //    //var query = from st in _customersContext.Customer
-        //    //            where st.LastName == LastName
-        //    //            select st;
+            ////query syntax
+            //var query = from st in _customersContext.Customer
+            //            where st.LastName == LastName
+            //            select st;
 
-        //    if (foundCustomer == null)
-        //    {
-        //        return NotFound("Customer not found");
-        //    }
+            if (foundCustomer == null)
+            {
+                return NotFound("Customer not found");
+            }
 
-        //    return Ok(foundCustomer);
-        //}
+            return Ok(foundCustomer);
+        }
 
-        //[HttpGet]
-        //public async Task<IActionResult> GetCustomersOrderedByLastName()
-        //{
-        //    var Customer = await _customersContext.Customer.OrderBy(c => c.LastName).ToListAsync();
+        //Postman: http://localhost:5241/api/customer/SearchByLastName/Yost
+        [HttpGet("SearchByLastName/{lastName}")]
+        public async Task<IActionResult> SearchByLastName(string lastName)
+        {
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                return BadRequest("The 'lastName' query parameter is required.");
+            }
+            lastName = lastName.Trim();
 
-        //    return Ok(Customer);
-        //}
+            var Customer = await _customersContext.Customer.
+                                Where(l =>  l.LastName == lastName).
+                                OrderBy(c => c.LastName).ToListAsync();
 
-        //[HttpGet("{customerId}")]
-        //public async Task<IActionResult> GetCustomerDto(int customerId)
-        //{
-        //    CustomerDTO? customerDTO = await _customersContext.Customer.Where(c => c.CustomerID == customerId).
-        //                    Select(p => new CustomerDTO(p.LastName))
-        //                    .FirstOrDefaultAsync();
+            return Ok(Customer);
+        }
 
-        //    return Ok(customerDTO);
-        //}
+        //Postman:http://localhost:5241/api/customer/GetCustomerDTO/31
+        [HttpGet("[action]/{customerId}")]
+        public async Task<IActionResult> GetCustomerDTO(int customerId)
+        {
+            CustomerDTO? customerDTO = await _customersContext.Customer.Where(c => c.CustomerID == customerId).
+                            Select(p => new CustomerDTO(p.LastName)).
+                            FirstOrDefaultAsync();
 
-        //[HttpGet("invoices/search")]
-        //public async Task<IActionResult> GetCustomerInvoices(string firstName)
-        //{
-        //    if (string.IsNullOrWhiteSpace(firstName))
-        //    {
-        //        return BadRequest("The 'firstName' query parameter is required.");
-        //    }
+            return Ok(customerDTO);
+        }
 
-        //    var CustInvoice = await _customersContext.Customer
-        //                    .Where(c => c.FirstName.StartsWith(firstName))
-        //                    .SelectMany(c => c.Invoices, (c, i) =>
-        //                    new
-        //                    {
-        //                        c.LastName,
-        //                        i.InvoiceDate
-        //                    })
-        //                    .ToListAsync();
+        //Postman:http://localhost:5241/api/customer/GetCustomerInvoices/Lon
+        [HttpGet("[action]/{firstName}")]
+        public async Task<IActionResult> GetCustomerInvoices(string firstName)
+        {
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                return BadRequest("The 'firstName' query parameter is required.");
+            }
 
-        //    return Ok(CustInvoice);
-        //}
+            var CustInvoice = await _customersContext.Customer
+                            .Where(c => c.FirstName.StartsWith(firstName))
+                            .SelectMany(c => c.Invoices, (c, i) =>
+                            new
+                            {
+                                c.LastName,
+                                i.InvoiceDate
+                            })
+                            .ToListAsync();
 
-        //[HttpGet("Search")]
-        //public async Task<IActionResult> GetCustomersWithInvoices([FromQuery] string firstName)
-        //{
-        //    if (string.IsNullOrWhiteSpace(firstName))
-        //    {
-        //        return BadRequest("A search term for the first name is required.");
-        //    }
-
-        //    var CustInvoice = await _customersContext.Customer
-        //                .Where(c => c.FirstName.StartsWith(firstName))
-        //                .Include(i => i.Invoices)
-        //                .ThenInclude(j => j.InvoiceLines)
-        //                .ToListAsync();
-
-        //    return Ok(CustInvoice);
-        //}
+            return Ok(CustInvoice);
+        }
     }
 }
