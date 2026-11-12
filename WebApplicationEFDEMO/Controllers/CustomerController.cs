@@ -1,4 +1,5 @@
-﻿using DAL;
+﻿using Azure.Core;
+using DAL;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -131,7 +132,7 @@ namespace WebApplicationEFDEMO.Controllers
             lastName = lastName.Trim();
 
             var Customer = await _customersContext.Customer.
-                                Where(l =>  l.LastName == lastName).
+                                Where(l => l.LastName == lastName).
                                 OrderBy(c => c.LastName).ToListAsync();
 
             return Ok(Customer);
@@ -168,6 +169,55 @@ namespace WebApplicationEFDEMO.Controllers
                             .ToListAsync();
 
             return Ok(CustInvoice);
+        }
+
+        //Postman: http://localhost:5241/api/customer/CreateCustomerInvoices
+        //        {
+        //  "firstName": "Jane",
+        //  "lastName": "Doe",
+        //  "invoices": [
+        //    {
+        //      "description": "Consulting Services",
+        //      "quantity": 2,
+        //      "unitPrice": 150.00
+        //    },
+        //    {
+        //      "description": "Software License",
+        //      "quantity": 1,
+        //      "unitPrice": 49.99
+        //    }
+        //  ]
+        //}
+        [HttpPost]
+        public async Task<IActionResult> CreateCustomerInvoices([FromBody] CreateCustomerInvoiceRequest createCustomerInvoiceRequest)
+        {
+            var customer = new Customer
+            {
+                FirstName = createCustomerInvoiceRequest.FirstName,
+                LastName = createCustomerInvoiceRequest.LastName,
+                Invoices = new List<Invoice>
+                {
+                new Invoice
+                    {
+                        InvoiceDate = DateTime.UtcNow,
+                        InvoiceLines = createCustomerInvoiceRequest.Invoices.Select(l => new InvoiceLine
+                                {
+                                    Description = l.Description,
+                                    Quantity = l.Quantity,
+                                    UnitPrice = l.UnitPrice
+                                }).ToList()
+                            }
+                        }
+            };
+
+            _customersContext.Customer.Add(customer);
+            await _customersContext.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Customer, invoice, and invoice lines created successfully!",
+                customerId = customer.CustomerID
+            });
         }
     }
 }

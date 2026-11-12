@@ -8,11 +8,11 @@ namespace DAL
 {
     public class CustomerContext : DbContext
     {
-        public DbSet<Customer> Customer { get; set; }
-        public DbSet<Invoice> Invoice { get; set; }
-        public DbSet<InvoiceLine> InvoicesLine { get; set; }
-        public DbSet<Employee> Employee { get; set; }
-        public DbSet<EmployeeRole> EmployeeRole { get; set; }
+        public DbSet<Customer> Customer => Set<Customer>();
+        public DbSet<Invoice> Invoice => Set<Invoice>();
+        public DbSet<InvoiceLine> InvoiceLine => Set<InvoiceLine>();
+        public DbSet<Employee> Employee => Set<Employee>();
+        public DbSet<EmployeeRole> EmployeeRole => Set<EmployeeRole>();
 
         public CustomerContext()
         {
