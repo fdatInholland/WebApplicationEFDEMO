@@ -3,7 +3,8 @@ using DAL;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApplicationEFDEMO.DTO;
+using WebApplicationEFDEMO.DTO.Request;
+using WebApplicationEFDEMO.DTO.Response;
 
 namespace WebApplicationEFDEMO.Controllers
 {
@@ -142,8 +143,8 @@ namespace WebApplicationEFDEMO.Controllers
         [HttpGet("[action]/{customerId}")]
         public async Task<IActionResult> GetCustomerDTO(int customerId)
         {
-            CustomerDTO? customerDTO = await _customersContext.Customer.Where(c => c.CustomerID == customerId).
-                            Select(p => new CustomerDTO(p.LastName)).
+            CustomerResponseDTO? customerDTO = await _customersContext.Customer.Where(c => c.CustomerID == customerId).
+                            Select(p => new CustomerResponseDTO(p.LastName)).
                             FirstOrDefaultAsync();
 
             return Ok(customerDTO);
@@ -189,7 +190,7 @@ namespace WebApplicationEFDEMO.Controllers
         //  ]
         //}
         [HttpPost]
-        public async Task<IActionResult> CreateCustomerInvoices([FromBody] CreateCustomerInvoiceRequest createCustomerInvoiceRequest)
+        public async Task<IActionResult> CreateCustomerInvoices([FromBody] CreateCustomerInvoiceRequestDTO createCustomerInvoiceRequest)
         {
             var customer = new Customer
             {
