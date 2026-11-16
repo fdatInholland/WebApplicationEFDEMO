@@ -1,10 +1,9 @@
-﻿using Azure.Core;
-using DAL;
+﻿using DAL;
 using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApplicationEFDEMO.DTO.Request;
-using WebApplicationEFDEMO.DTO.Response;
+using Shared.Request;
+using Shared.Response;
 
 namespace WebApplicationEFDEMO.Controllers
 {
@@ -32,7 +31,7 @@ namespace WebApplicationEFDEMO.Controllers
         [HttpPost("DeleteCustomer/{CustomerId}")]
         public async Task<IActionResult> DeleteCustomer(int CustomerId)
         {
-            Customer foundCustomer = await _customersContext.Customer.FindAsync(CustomerId);
+            Customer? foundCustomer = await _customersContext.Customer.FindAsync(CustomerId);
 
             if (foundCustomer is null)
             {
@@ -40,11 +39,12 @@ namespace WebApplicationEFDEMO.Controllers
             }
             _customersContext.Customer.Remove(foundCustomer);
 
-            _customersContext.SaveChangesAsync();
+            await _customersContext.SaveChangesAsync();
 
             return NoContent();
         }
 
+        //Postman: http://localhost:5241/api/customer/5
         //        {
         //  "customerID": 5,
         //  "firstName": "Jane",
@@ -96,7 +96,7 @@ namespace WebApplicationEFDEMO.Controllers
         [HttpPost("FindCustomerByLN")]
         public async Task<IActionResult> FindCustomerByLN(string lastName)
         {
-            Customer foundCustomer = null;
+            Customer? foundCustomer = null;
 
             if (string.IsNullOrWhiteSpace(lastName))
             {

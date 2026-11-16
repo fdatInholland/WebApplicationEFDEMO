@@ -9,12 +9,12 @@ namespace Domain
 
         public int InvoiceID { get; set; }
 
-        public string Productname { get; set; }
+        public string? Productname { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public int Quantity { get; set; }
 
-        public decimal UnitPrice { get; set; }
+        public decimal? UnitPrice { get; set; }
 
         public virtual Invoice Invoice { get; set; }
     }
