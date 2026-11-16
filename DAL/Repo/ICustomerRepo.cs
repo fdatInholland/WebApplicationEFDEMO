@@ -1,7 +1,4 @@
 ﻿using Domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DAL.Repo
 {
@@ -13,16 +10,16 @@ namespace DAL.Repo
 
         Task<Customer?> UpdateCustomer(int id, Customer updatedCustomer);
 
-        Task<List<Customer>> GetCustomerWithInvoicesAsync(int customerId);
+        Task<IEnumerable<Customer>> GetCustomerWithInvoices(int customerId);
 
-        Task<Customer?> FindCustomerByLastNameAsync(string lastName);
+        Task<Customer?> FindCustomerByLastName(string lastName);
 
-        Task<IEnumerable<Customer>> SearchByLastNameAsync(string lastName);
+        Task<IEnumerable<Customer>> SearchByLastName(string lastName);
 
-        Task<Customer?> GetCustomerDtoAsync(int customerId);
+        Task<Customer?> GetCustomer(int customerId);
 
         Task<IEnumerable<object>> GetCustomerInvoicesByFirstName(string firstName);
 
-        Task<int> CreateCustomerInvoiceAsync(Customer Customer);
+        Task<int> CreateCustomerInvoice(Customer Customer);
     }
 }
