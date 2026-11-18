@@ -10,6 +10,11 @@ namespace ServiceLayer
     {
         private readonly CustomerDbContext _customerContext;
 
+        public CustomerService(CustomerDbContext customerContext)
+        {
+            _customerContext = customerContext ?? throw new ArgumentNullException(nameof(customerContext));
+        }
+
         public Task<int> CreateCustomerInvoiceAsync(CreateCustomerInvoiceRequestDTO createCustomerInvoiceRequest)
         {
             throw new NotImplementedException();
@@ -24,16 +29,16 @@ namespace ServiceLayer
                 throw new KeyNotFoundException("Customer not Found");
             }
 
-             _customerContext.Customers.Remove(foundCustomer);
+            _customerContext.Customers.Remove(foundCustomer);
 
             await _customerContext.SaveChangesAsync();
-            
+
             return true;
         }
 
-        public Task<Customer?> FindCustomerByLastNameAsync(string lastName)
+        public async Task<Customer?> FindCustomerByLastNameAsync(string lastName)
         {
-            throw new NotImplementedException();
+            return _customerContext.Customers.Where(c => c.LastName == lastName).FirstOrDefault(); ;
         }
 
         public async Task<IEnumerable<Customer>> GetAllCustomersAsync()

@@ -93,34 +93,31 @@ namespace WebApplicationEFDEMO.Controllers
         //}
 
         ////Postman: http://localhost:5241/api/customer/FindCustomerByLN?lastName=Om
-        //[HttpPost("FindCustomerByLN")]
-        //public async Task<IActionResult> FindCustomerByLN(string lastName)
-        //{
-        //    Customer? foundCustomer = null;
+        [HttpPost("FindCustomerByLN")]
+        public async Task<IActionResult> FindCustomerByLN(string lastName)
+        {
+            Customer? foundCustomer = null;
 
-        //    if (string.IsNullOrWhiteSpace(lastName))
-        //    {
-        //        return BadRequest("The 'lastName' query parameter is required.");
-        //    }
-        //    lastName = lastName.Trim();
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                return BadRequest("The 'lastName' query parameter is required.");
+            }
+            lastName = lastName.Trim();
 
-        //    //method syntax
-        //    foundCustomer = _customersContext.Customer
-        //                    .Where(c => c.LastName == lastName)
-        //                    .FirstOrDefault<Customer>();
+            //method syntax
+            foundCustomer = await _customerService.FindCustomerByLastNameAsync(lastName);
 
-        //    ////query syntax
-        //    //var query = from st in _customersContext.Customer
-        //    //            where st.LastName == LastName
-        //    //            select st;
+            ////query syntax
+            //var query = from st in _customersContext.Customer
+            //            where st.LastName == LastName
+            //            select st;
 
-        //    if (foundCustomer == null)
-        //    {
-        //        return NotFound("Customer not found");
-        //    }
-
-        //    return Ok(foundCustomer);
-        //}
+            if (foundCustomer == null)
+            {
+                return NotFound("Customer not found");
+            }
+            return Ok(foundCustomer);
+        }
 
         ////Postman: http://localhost:5241/api/customer/SearchByLastName/Yost
         //[HttpGet("SearchByLastName/{lastName}")]

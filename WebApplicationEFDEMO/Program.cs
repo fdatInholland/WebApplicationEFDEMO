@@ -12,10 +12,9 @@ namespace WebApplicationEFDEMO
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
-            builder.Services.AddScoped<ICustomerService, CustomerService>();
-
-
             builder.Services.AddDbContext<CustomerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
 
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
