@@ -6,20 +6,20 @@ using Microsoft.Extensions.Configuration;
 
 namespace DAL
 {
-    public class CustomerContext : DbContext
+    public class CustomerDbContext : DbContext
     {
-        public DbSet<Customer> Customer => Set<Customer>();
-        public DbSet<Invoice> Invoice => Set<Invoice>();
-        public DbSet<InvoiceLine> InvoiceLine => Set<InvoiceLine>();
-        public DbSet<Employee> Employee => Set<Employee>();
-        public DbSet<EmployeeRole> EmployeeRole => Set<EmployeeRole>();
+        public DbSet<Customer> Customers => Set<Customer>();
+        public DbSet<Invoice> Invoices => Set<Invoice>();
+        public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+        public DbSet<Employee> Employees => Set<Employee>();
+        public DbSet<EmployeeRole> EmployeeRoles => Set<EmployeeRole>();
 
-        public CustomerContext()
+        public CustomerDbContext()
         {
 
         }
 
-        public CustomerContext(DbContextOptions<CustomerContext> options) : base(options)
+        public CustomerDbContext(DbContextOptions<CustomerDbContext> options) : base(options)
         {
         }
 

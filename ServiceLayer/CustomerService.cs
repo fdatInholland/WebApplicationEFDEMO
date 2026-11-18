@@ -1,4 +1,6 @@
-﻿using Domain;
+﻿using DAL;
+using Domain;
+using Microsoft.EntityFrameworkCore;
 using Shared.Request;
 using Shared.Response;
 
@@ -6,14 +8,27 @@ namespace ServiceLayer
 {
     public class CustomerService : ICustomerService
     {
+        private readonly CustomerDbContext _customerContext;
+
         public Task<int> CreateCustomerInvoiceAsync(CreateCustomerInvoiceRequestDTO createCustomerInvoiceRequest)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteCustomerAsync(int customerId)
+        public async Task<bool> DeleteCustomerAsync(int customerId)
         {
-            throw new NotImplementedException();
+            Customer foundCustomer = await _customerContext.Customers.FindAsync(customerId);
+
+            if (foundCustomer is null)
+            {
+                throw new KeyNotFoundException("Customer not Found");
+            }
+
+             _customerContext.Customers.Remove(foundCustomer);
+
+            await _customerContext.SaveChangesAsync();
+            
+            return true;
         }
 
         public Task<Customer?> FindCustomerByLastNameAsync(string lastName)
@@ -21,7 +36,14 @@ namespace ServiceLayer
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Customer>> GetAllCustomersAsync()
+        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
+        {
+            return await _customerContext.Customers
+                             .AsQueryable()
+                             .ToListAsync();
+        }
+
+        public Task<Customer?> GetCustomerAsync(int customerId)
         {
             throw new NotImplementedException();
         }

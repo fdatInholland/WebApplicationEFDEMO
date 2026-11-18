@@ -1,6 +1,5 @@
 ﻿using Domain;
 using Shared.Request;
-using Shared.Response;
 
 namespace ServiceLayer
 {
@@ -19,7 +18,7 @@ namespace ServiceLayer
 
         Task<IEnumerable<Customer>> SearchByLastNameAsync(string lastName);
 
-        Task<CustomerResponseDTO?> GetCustomerDtoAsync(int customerId);
+        Task<Customer?> GetCustomerAsync(int customerId);
 
         Task<IEnumerable<object>> GetCustomerInvoicesByFirstNameAsync(string firstName);
 
